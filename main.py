@@ -1,6 +1,4 @@
 import random
-import time
-
 import pygame
 
 
@@ -16,7 +14,7 @@ class Tile:
 class Game:
     def __init__(self):
         pygame.init()
-        self.WIDTH = 16
+        self.WIDTH = 32
         self.HEIGHT = 16
         self.TILE_DIMS = 56
         self.screen = pygame.display.set_mode((self.WIDTH * self.TILE_DIMS, self.HEIGHT * self.TILE_DIMS))
@@ -26,7 +24,7 @@ class Game:
         self.num_tiles = len(self.tiles)
         self.entropy_grid = [[self.num_tiles for _ in range(self.HEIGHT)] for _ in range(self.WIDTH)]
         # Accessed as x, y
-
+        self.stack = []
     def load_tiles(self):
         imgs = []
         for i in range(13):
@@ -98,12 +96,45 @@ class Game:
                 if event.type == pygame.QUIT:
                     c = False
             (x, y), entropy = self.get_lowest_entropy()
-            if entropy == 0 or entropy == 37:  # 37 is game end condition
-                print('ERROR - NO TILES ARE VALID', x, y)
-                # If entropy is 0, this is where you need to backtrack -------------------
+            if entropy == 0:
+                # If entropy is 0, this is where you need to backtrack
+                popped = self.stack.pop()
+                while len(popped) != 4:
+                    tile, x, y = popped
+                    self.remove_tile(x, y)
+                    # Removes the tile from the grid and from the screen and reverses entropy changes
+                    popped = self.stack.pop()
+                tile, x, y, poss_tiles = popped
+                self.remove_tile(x, y)
+
+                if len(poss_tiles) == 1:
+                    tile = poss_tiles[0]
+                    self.stack.append([tile, x, y])
+                else:
+                    tile = random.choice(poss_tiles)
+                    poss_tiles.remove(tile)
+                    self.stack.append([tile, x, y, poss_tiles])
+
+                self.grid[x][y] = tile
+
+                # Randomly chooses from the possible tiles.
+                self.screen.blit(tile.img, (x * self.TILE_DIMS, y * self.TILE_DIMS))
+                pygame.display.update(pygame.Rect((x * self.TILE_DIMS, y * self.TILE_DIMS), (self.TILE_DIMS,
+                                                                                             self.TILE_DIMS)))
+                # Adds the tile to the screen.
+
+                self.update_entropy(x, y)
+            elif entropy == 37:
                 c = False
-            if c:
-                tile = random.choice(self.get_possible_tiles(x, y))
+            elif c:
+                poss_tiles = self.get_possible_tiles(x, y)
+                tile = random.choice(poss_tiles)
+                if len(poss_tiles) == 1:
+                    self.stack.append([tile, x, y])
+                else:
+                    poss_tiles.remove(tile)
+                    self.stack.append([tile, x, y, poss_tiles])
+
                 self.grid[x][y] = tile
 
                 # Randomly chooses from the possible tiles.
@@ -141,11 +172,12 @@ class Game:
 
         return coords, best
 
-    def update_entropy(self, x, y):
-        self.entropy_grid[x][y] = -1
+    def update_entropy(self, x, y, removing=False):
+        if not removing:
+            self.entropy_grid[x][y] = -1
 
         up, down, left, right = 0, 0, 0, 0
-        for i, t in enumerate(self.tiles):
+        for t in self.tiles:
             if self.can_be_placed(t, x, y + 1):
                 down += 1
             if self.can_be_placed(t, x, y - 1):
@@ -193,6 +225,19 @@ class Game:
             return tile.edges[index] == list(reversed(side.edges[(index + 2) % 4]))
             # Reversed as both edges go clockwise around the tile, so meet going opposite directions
         return True
+
+    def remove_tile(self, x, y):
+        self.grid[x][y] = None
+        rectangle = pygame.Surface((self.TILE_DIMS, self.TILE_DIMS))
+        rectangle.fill(pygame.Color(0, 0, 0))
+        self.screen.blit(rectangle, (x * self.TILE_DIMS, y * self.TILE_DIMS))
+        pygame.display.update()
+        self.update_entropy(x, y, removing=True)
+        self.entropy_grid[x][y] = 0
+        for t in self.tiles:
+            if self.can_be_placed(t, x, y):
+                self.entropy_grid[x][y] += 1
+                # Resets the entropy for x, y
 
 
 g = Game()
