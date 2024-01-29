@@ -1,11 +1,12 @@
 import random
 import pygame
+import time
 
 
 # Choose the tile with the least entropy - the least number of tiles that could fit in that spot. If 0, backtrack,
 # if more than 1, randomly select and log in a stack for backtracking
 class Tile:
-    def __init__(self, img: int, edges):
+    def __init__(self, img, edges):
         # Each edge has 3 sockets which must match up to fit.
         self.img = img
         self.edges = edges
@@ -26,28 +27,28 @@ class Game:
         # Accessed as x, y
         self.stack = []
     def load_tiles(self):
-        self.imgs = []
+        imgs = []
         for i in range(13):
-            self.imgs.append(pygame.image.load(f'./images/circuit/{i}.png'))
+            imgs.append(pygame.image.load(f'./images/circuit/{i}.png'))
         ts = []
         # 0 is black
         # 1 is green
         # 2 is turquoise
         # 3 is gray
         # Clockwise from the top
-        ts.append(Tile(0, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]))
-        ts.append(Tile(1, [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(2, [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(3, [[1, 1, 1], [1, 3, 1], [1, 1, 1], [1, 3, 1]]))
-        ts.append(Tile(4, [[0, 1, 1], [1, 2, 1], [1, 1, 0], [0, 0, 0]]))
-        ts.append(Tile(5, [[0, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 0]]))
-        ts.append(Tile(6, [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
-        ts.append(Tile(7, [[1, 3, 1], [1, 2, 1], [1, 3, 1], [1, 2, 1]]))
-        ts.append(Tile(8, [[1, 3, 1], [1, 1, 1], [1, 2, 1], [1, 1, 1]]))
-        ts.append(Tile(9, [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
-        ts.append(Tile(10, [[1, 2, 1], [1, 2, 1], [1, 2, 1], [1, 2, 1]]))
-        ts.append(Tile(11, [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(12, [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        ts.append(Tile(imgs[0], [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]))
+        ts.append(Tile(imgs[1], [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]))
+        ts.append(Tile(imgs[2], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
+        ts.append(Tile(imgs[3], [[1, 1, 1], [1, 3, 1], [1, 1, 1], [1, 3, 1]]))
+        ts.append(Tile(imgs[4], [[0, 1, 1], [1, 2, 1], [1, 1, 0], [0, 0, 0]]))
+        ts.append(Tile(imgs[5], [[0, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 0]]))
+        ts.append(Tile(imgs[6], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        ts.append(Tile(imgs[7], [[1, 3, 1], [1, 2, 1], [1, 3, 1], [1, 2, 1]]))
+        ts.append(Tile(imgs[8], [[1, 3, 1], [1, 1, 1], [1, 2, 1], [1, 1, 1]]))
+        ts.append(Tile(imgs[9], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        ts.append(Tile(imgs[10], [[1, 2, 1], [1, 2, 1], [1, 2, 1], [1, 2, 1]]))
+        ts.append(Tile(imgs[11], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
+        ts.append(Tile(imgs[12], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
 
         # Now rotating the tiles that need to be
         ts.append(self.copy_and_rotate(ts[2], 1))
@@ -77,17 +78,17 @@ class Game:
         return ts
 
     def copy_and_rotate(self, tile, num):
-        img, edges = self.imgs[tile.img], tile.edges
+        img, edges = tile.img, tile.edges
 
         new_img = pygame.transform.rotate(img, -90 * num)
         # Anticlockwise rotation of specified angle in degrees
-        self.imgs.append(new_img)
+
         new_edges = [0, 0, 0, 0]
 
         for i, edge in enumerate(edges):
             new_edges[(i + num) % 4] = edge
 
-        return Tile(len(self.imgs)-1, new_edges)
+        return Tile(new_img, new_edges)
 
     def play(self):
         c = True
@@ -115,10 +116,10 @@ class Game:
                     poss_tiles.remove(tile)
                     self.stack.append([tile, x, y, poss_tiles])
 
-                self.grid[x][y] = tile
+                self.grid[x][y] = self.tiles.index(tile)
 
                 # Randomly chooses from the possible tiles.
-                self.screen.blit(self.imgs[tile.img], (x * self.TILE_DIMS, y * self.TILE_DIMS))
+                self.screen.blit(tile.img, (x * self.TILE_DIMS, y * self.TILE_DIMS))
                 pygame.display.update(pygame.Rect((x * self.TILE_DIMS, y * self.TILE_DIMS), (self.TILE_DIMS,
                                                                                              self.TILE_DIMS)))
                 # Adds the tile to the screen.
@@ -135,27 +136,33 @@ class Game:
                     poss_tiles.remove(tile)
                     self.stack.append([tile, x, y, poss_tiles])
 
-                self.grid[x][y] = tile
+                self.grid[x][y] = self.tiles.index(tile)
 
                 # Randomly chooses from the possible tiles.
-                self.screen.blit(self.imgs[tile.img], (x * self.TILE_DIMS, y * self.TILE_DIMS))
+                self.screen.blit(tile.img, (x * self.TILE_DIMS, y * self.TILE_DIMS))
                 pygame.display.update(pygame.Rect((x * self.TILE_DIMS, y * self.TILE_DIMS), (self.TILE_DIMS,
                                                                                              self.TILE_DIMS)))
                 # Adds the tile to the screen.
 
                 self.update_entropy(x, y)
-        input()
+        # input()
+
+    def get_X_Y(self, x, y):
+        pos = self.grid[x][y]
+        if pos is None:
+            return None
+        return self.tiles[pos]
 
     def get_possible_tiles(self, x, y):
         left, right, up, down = -1, -1, -1, -1
         if y > 0:
-            up = self.grid[x][y - 1]
+            up = self.get_X_Y(x, y-1)
         if y < self.HEIGHT - 1:
-            down = self.grid[x][y + 1]
+            down = self.get_X_Y(x, y+1)
         if x > 0:
-            left = self.grid[x - 1][y]
+            left = self.get_X_Y(x-1, y)
         if x < self.WIDTH - 1:
-            right = self.grid[x + 1][y]
+            right = self.get_X_Y(x+1, y)
         # Gets the tiles surrounding it
 
         # Returns the tiles that can be placed there
@@ -208,13 +215,13 @@ class Game:
 
             left, right, up, down = -1, -1, -1, -1
             if y > 0:
-                up = self.grid[x][y - 1]
+                up = self.get_X_Y(x, y - 1)
             if y < self.HEIGHT - 1:
-                down = self.grid[x][y + 1]
+                down = self.get_X_Y(x, y + 1)
             if x > 0:
-                left = self.grid[x - 1][y]
+                left = self.get_X_Y(x - 1, y)
             if x < self.WIDTH - 1:
-                right = self.grid[x + 1][y]
+                right = self.get_X_Y(x + 1, y)
 
         surrounding = [up, right, down, left]
         return [self.compare_sockets(tile, side, i) for i, side in enumerate(surrounding)] == [True] * 4
@@ -238,7 +245,6 @@ class Game:
             if self.can_be_placed(t, x, y):
                 self.entropy_grid[x][y] += 1
                 # Resets the entropy for x, y
-
 
 g = Game()
 g.play()
