@@ -5,7 +5,7 @@ import pygame
 # Choose the tile with the least entropy - the least number of tiles that could fit in that spot. If 0, backtrack,
 # if more than 1, randomly select and log in a stack for backtracking
 class Tile:
-    def __init__(self, img, edges):
+    def __init__(self, img: int, edges):
         # Each edge has 3 sockets which must match up to fit.
         self.img = img
         self.edges = edges
@@ -26,28 +26,28 @@ class Game:
         # Accessed as x, y
         self.stack = []
     def load_tiles(self):
-        imgs = []
+        self.imgs = []
         for i in range(13):
-            imgs.append(pygame.image.load(f'./images/circuit/{i}.png'))
+            self.imgs.append(pygame.image.load(f'./images/circuit/{i}.png'))
         ts = []
         # 0 is black
         # 1 is green
         # 2 is turquoise
         # 3 is gray
         # Clockwise from the top
-        ts.append(Tile(imgs[0], [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]))
-        ts.append(Tile(imgs[1], [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[2], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[3], [[1, 1, 1], [1, 3, 1], [1, 1, 1], [1, 3, 1]]))
-        ts.append(Tile(imgs[4], [[0, 1, 1], [1, 2, 1], [1, 1, 0], [0, 0, 0]]))
-        ts.append(Tile(imgs[5], [[0, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 0]]))
-        ts.append(Tile(imgs[6], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[7], [[1, 3, 1], [1, 2, 1], [1, 3, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[8], [[1, 3, 1], [1, 1, 1], [1, 2, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[9], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[10], [[1, 2, 1], [1, 2, 1], [1, 2, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[11], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[12], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        ts.append(Tile(0, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]))
+        ts.append(Tile(1, [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]))
+        ts.append(Tile(2, [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
+        ts.append(Tile(3, [[1, 1, 1], [1, 3, 1], [1, 1, 1], [1, 3, 1]]))
+        ts.append(Tile(4, [[0, 1, 1], [1, 2, 1], [1, 1, 0], [0, 0, 0]]))
+        ts.append(Tile(5, [[0, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 0]]))
+        ts.append(Tile(6, [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        ts.append(Tile(7, [[1, 3, 1], [1, 2, 1], [1, 3, 1], [1, 2, 1]]))
+        ts.append(Tile(8, [[1, 3, 1], [1, 1, 1], [1, 2, 1], [1, 1, 1]]))
+        ts.append(Tile(9, [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        ts.append(Tile(10, [[1, 2, 1], [1, 2, 1], [1, 2, 1], [1, 2, 1]]))
+        ts.append(Tile(11, [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
+        ts.append(Tile(12, [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
 
         # Now rotating the tiles that need to be
         ts.append(self.copy_and_rotate(ts[2], 1))
@@ -77,17 +77,17 @@ class Game:
         return ts
 
     def copy_and_rotate(self, tile, num):
-        img, edges = tile.img, tile.edges
+        img, edges = self.imgs[tile.img], tile.edges
 
         new_img = pygame.transform.rotate(img, -90 * num)
         # Anticlockwise rotation of specified angle in degrees
-
+        self.imgs.append(new_img)
         new_edges = [0, 0, 0, 0]
 
         for i, edge in enumerate(edges):
             new_edges[(i + num) % 4] = edge
 
-        return Tile(new_img, new_edges)
+        return Tile(len(self.imgs)-1, new_edges)
 
     def play(self):
         c = True
@@ -118,7 +118,7 @@ class Game:
                 self.grid[x][y] = tile
 
                 # Randomly chooses from the possible tiles.
-                self.screen.blit(tile.img, (x * self.TILE_DIMS, y * self.TILE_DIMS))
+                self.screen.blit(self.imgs[tile.img], (x * self.TILE_DIMS, y * self.TILE_DIMS))
                 pygame.display.update(pygame.Rect((x * self.TILE_DIMS, y * self.TILE_DIMS), (self.TILE_DIMS,
                                                                                              self.TILE_DIMS)))
                 # Adds the tile to the screen.
@@ -138,7 +138,7 @@ class Game:
                 self.grid[x][y] = tile
 
                 # Randomly chooses from the possible tiles.
-                self.screen.blit(tile.img, (x * self.TILE_DIMS, y * self.TILE_DIMS))
+                self.screen.blit(self.imgs[tile.img], (x * self.TILE_DIMS, y * self.TILE_DIMS))
                 pygame.display.update(pygame.Rect((x * self.TILE_DIMS, y * self.TILE_DIMS), (self.TILE_DIMS,
                                                                                              self.TILE_DIMS)))
                 # Adds the tile to the screen.
