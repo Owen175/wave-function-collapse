@@ -1,6 +1,5 @@
 import random
 import pygame
-import time
 
 
 # Choose the tile with the least entropy - the least number of tiles that could fit in that spot. If 0, backtrack,
@@ -145,7 +144,7 @@ class Game:
                 # Adds the tile to the screen.
 
                 self.update_entropy(x, y)
-        # input()
+        input()
 
     def get_X_Y(self, x, y):
         pos = self.grid[x][y]
