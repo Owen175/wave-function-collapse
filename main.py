@@ -14,9 +14,11 @@ class Tile:
 class Game:
     def __init__(self):
         pygame.init()
-        self.WIDTH = 32
-        self.HEIGHT = 16
-        self.TILE_DIMS = 56
+        self.game = 'circuit'
+
+        self.WIDTH = 20
+        self.HEIGHT = 20
+        self.TILE_DIMS = 56  # 56 is standard for circuit
         self.screen = pygame.display.set_mode((self.WIDTH * self.TILE_DIMS, self.HEIGHT * self.TILE_DIMS))
         pygame.display.set_caption('Wave Function Collapse - Circuit')
         self.tiles = self.load_tiles()
@@ -26,56 +28,84 @@ class Game:
         # Accessed as x, y
         self.stack = []
     def load_tiles(self):
-        imgs = []
-        for i in range(13):
-            imgs.append(pygame.image.load(f'./images/circuit/{i}.png'))
-        ts = []
-        # 0 is black
-        # 1 is green
-        # 2 is turquoise
-        # 3 is gray
-        # Clockwise from the top
-        ts.append(Tile(imgs[0], [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]))
-        ts.append(Tile(imgs[1], [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[2], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[3], [[1, 1, 1], [1, 3, 1], [1, 1, 1], [1, 3, 1]]))
-        ts.append(Tile(imgs[4], [[0, 1, 1], [1, 2, 1], [1, 1, 0], [0, 0, 0]]))
-        ts.append(Tile(imgs[5], [[0, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 0]]))
-        ts.append(Tile(imgs[6], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[7], [[1, 3, 1], [1, 2, 1], [1, 3, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[8], [[1, 3, 1], [1, 1, 1], [1, 2, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[9], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[10], [[1, 2, 1], [1, 2, 1], [1, 2, 1], [1, 2, 1]]))
-        ts.append(Tile(imgs[11], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
-        ts.append(Tile(imgs[12], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+        if self.game == 'circuit':
+            imgs = []
+            for i in range(13):
+                imgs.append(pygame.transform.scale(pygame.image.load(f'./images/circuit/{i}.png'), (self.TILE_DIMS, self.TILE_DIMS)))
+            ts = []
+            # 0 is black
+            # 1 is green
+            # 2 is turquoise
+            # 3 is gray
+            # Clockwise from the top
+            ts.append(Tile(imgs[0], [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]))
+            ts.append(Tile(imgs[1], [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]))
+            ts.append(Tile(imgs[2], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
+            ts.append(Tile(imgs[3], [[1, 1, 1], [1, 3, 1], [1, 1, 1], [1, 3, 1]]))
+            ts.append(Tile(imgs[4], [[0, 1, 1], [1, 2, 1], [1, 1, 0], [0, 0, 0]]))
+            ts.append(Tile(imgs[5], [[0, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 0]]))
+            ts.append(Tile(imgs[6], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+            ts.append(Tile(imgs[7], [[1, 3, 1], [1, 2, 1], [1, 3, 1], [1, 2, 1]]))
+            ts.append(Tile(imgs[8], [[1, 3, 1], [1, 1, 1], [1, 2, 1], [1, 1, 1]]))
+            ts.append(Tile(imgs[9], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
+            ts.append(Tile(imgs[10], [[1, 2, 1], [1, 2, 1], [1, 2, 1], [1, 2, 1]]))
+            ts.append(Tile(imgs[11], [[1, 2, 1], [1, 2, 1], [1, 1, 1], [1, 1, 1]]))
+            ts.append(Tile(imgs[12], [[1, 1, 1], [1, 2, 1], [1, 1, 1], [1, 2, 1]]))
 
-        # Now rotating the tiles that need to be
-        ts.append(self.copy_and_rotate(ts[2], 1))
-        ts.append(self.copy_and_rotate(ts[2], 2))
-        ts.append(self.copy_and_rotate(ts[2], 3))
-        ts.append(self.copy_and_rotate(ts[3], 1))
-        ts.append(self.copy_and_rotate(ts[4], 1))
-        ts.append(self.copy_and_rotate(ts[4], 2))
-        ts.append(self.copy_and_rotate(ts[4], 3))
-        ts.append(self.copy_and_rotate(ts[5], 1))
-        ts.append(self.copy_and_rotate(ts[5], 2))
-        ts.append(self.copy_and_rotate(ts[5], 3))
-        ts.append(self.copy_and_rotate(ts[6], 1))
-        ts.append(self.copy_and_rotate(ts[7], 1))
-        ts.append(self.copy_and_rotate(ts[8], 1))
-        ts.append(self.copy_and_rotate(ts[8], 2))
-        ts.append(self.copy_and_rotate(ts[8], 3))
-        ts.append(self.copy_and_rotate(ts[9], 1))
-        ts.append(self.copy_and_rotate(ts[9], 2))
-        ts.append(self.copy_and_rotate(ts[9], 3))
-        ts.append(self.copy_and_rotate(ts[10], 1))
-        ts.append(self.copy_and_rotate(ts[11], 1))
-        ts.append(self.copy_and_rotate(ts[11], 2))
-        ts.append(self.copy_and_rotate(ts[11], 3))
-        ts.append(self.copy_and_rotate(ts[12], 1))
+            # Now rotating the tiles that need to be
+            ts.append(self.copy_and_rotate(ts[2], 1))
+            ts.append(self.copy_and_rotate(ts[2], 2))
+            ts.append(self.copy_and_rotate(ts[2], 3))
+            ts.append(self.copy_and_rotate(ts[3], 1))
+            ts.append(self.copy_and_rotate(ts[4], 1))
+            ts.append(self.copy_and_rotate(ts[4], 2))
+            ts.append(self.copy_and_rotate(ts[4], 3))
+            ts.append(self.copy_and_rotate(ts[5], 1))
+            ts.append(self.copy_and_rotate(ts[5], 2))
+            ts.append(self.copy_and_rotate(ts[5], 3))
+            ts.append(self.copy_and_rotate(ts[6], 1))
+            ts.append(self.copy_and_rotate(ts[7], 1))
+            ts.append(self.copy_and_rotate(ts[8], 1))
+            ts.append(self.copy_and_rotate(ts[8], 2))
+            ts.append(self.copy_and_rotate(ts[8], 3))
+            ts.append(self.copy_and_rotate(ts[9], 1))
+            ts.append(self.copy_and_rotate(ts[9], 2))
+            ts.append(self.copy_and_rotate(ts[9], 3))
+            ts.append(self.copy_and_rotate(ts[10], 1))
+            ts.append(self.copy_and_rotate(ts[11], 1))
+            ts.append(self.copy_and_rotate(ts[11], 2))
+            ts.append(self.copy_and_rotate(ts[11], 3))
+            ts.append(self.copy_and_rotate(ts[12], 1))
 
-        return ts
+            return ts
+        elif self.game == 'tracks':
+            imgs = []
+            for i in range(5):
+                imgs.append(pygame.transform.scale(pygame.image.load(f'./images/demo-tracks/{i}.png'), (self.TILE_DIMS, self.TILE_DIMS)))
+            ts = []
+            # 0 is black
+            # 1 is green
+            # 2 is turquoise
+            # 3 is gray
+            # Clockwise from the top
+            ts.append(Tile(imgs[1], [[0, 0], [0, 0], [0, 0], [0, 0]]))
+            ts.append(Tile(imgs[0], [[0, 0], [1, 1], [1, 1], [1, 1]]))
+            ts.append(Tile(imgs[2], [[1, 1], [0, 0], [1, 1], [1, 1]]))
+            ts.append(Tile(imgs[3], [[1, 1], [1, 1], [1, 1], [0, 0]]))
+            ts.append(Tile(imgs[4], [[1, 1], [1, 1], [0, 0], [1, 1]]))
 
+            return ts
+        elif self.game == 'pipes':
+            imgs = []
+            for i in range(5):
+                imgs.append(pygame.transform.scale(pygame.image.load(f'./images/pipes/{i}.png'), (self.TILE_DIMS, self.TILE_DIMS)))
+            ts = []
+            ts.append(Tile(imgs[0], [[0, 0], [0, 0], [0, 0], [0, 0]]))
+            ts.append(Tile(imgs[1], [[0, 0], [1, 1], [1, 1], [1, 1]]))
+            ts.append(Tile(imgs[2], [[1, 1], [0, 0], [1, 1], [1, 1]]))
+            ts.append(Tile(imgs[3], [[1, 1], [1, 1], [1, 1], [0, 0]]))
+            ts.append(Tile(imgs[4], [[1, 1], [1, 1], [0, 0], [1, 1]]))
+            return ts
     def copy_and_rotate(self, tile, num):
         img, edges = tile.img, tile.edges
 
@@ -116,7 +146,7 @@ class Game:
                     self.stack.append([tile, x, y, poss_tiles])
 
                 self.grid[x][y] = self.tiles.index(tile)
-
+    
                 # Randomly chooses from the possible tiles.
                 self.screen.blit(tile.img, (x * self.TILE_DIMS, y * self.TILE_DIMS))
                 pygame.display.update(pygame.Rect((x * self.TILE_DIMS, y * self.TILE_DIMS), (self.TILE_DIMS,
@@ -124,7 +154,7 @@ class Game:
                 # Adds the tile to the screen.
 
                 self.update_entropy(x, y)
-            elif entropy == 37:
+            elif entropy == len(self.tiles) + 1:
                 c = False
             elif c:
                 poss_tiles = self.get_possible_tiles(x, y)
